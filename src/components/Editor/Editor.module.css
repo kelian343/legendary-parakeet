@@ -1,99 +1,116 @@
 .editor {
-  background: #ffffff;
-  color: #2d3748;
+  /* 原有样式保持不变 */
+  /*background: #ffffff; 日间模式 */
+  background: #25262b; /* 夜间模式 */
+  /*color: #2d3748; 日间模式 */
+  color: #e2e2e3; /* 浅色文字 */
   width: 100%;
   height: 100%;
   padding: 24px;
   box-sizing: border-box;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+  /* 修改字体堆叠，优化中文显示 */
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Hiragino Sans GB", "STHeiti", "SimSun", sans-serif;
+  
+  /* 调整字号和行高，适合中文阅读 */
   font-size: 16px;
-  line-height: 1.7;
-  text-align: left;
-  overflow-y: auto;
-  border-radius: 4px;
+  line-height: 1.8;  /* 增加行高，提高中文可读性 */
+  
+  /* 增加字重，让中文显示更清晰 */
+  font-weight: 400;
+  
+  /* 添加字体平滑效果 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  border: none;  /* 移除边框 */
+  outline: none; /* 移除焦点边框 */
 }
 
-/* 优化滚动条样式 */
-.editor::-webkit-scrollbar {
-  width: 8px;
-}
-
-.editor::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.editor::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 4px;
-}
-
-/* 改进 ProseMirror 基础节点样式 */
+/* 基础文档样式 */
 .ProseMirror {
   outline: none;
-  min-height: calc(100% - 40px); /* 减去头部高度 */
+  min-height: calc(100% - 40px);
+  
+  /* 默认字体设置 */
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Hiragino Sans GB", "STHeiti", "SimSun", sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  /*color: #2d3748; 日间模式 */
+  color: #e2e2e3;
+  
+  /* 提升文本渲染质量 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
+/* 文本节点间距优化 */
+.ProseMirror > * + * {
+  margin-top: 1.2em;  /* 相邻块级元素之间的间距 */
+}
+
+
+
+/* 优化段落样式 */
 .ProseMirror p {
-  margin: 1em 0;
-  line-height: 1.7;
-  letter-spacing: 0.3px;
+  margin: 1.2em 0;  /* 增加段落间距 */
+  line-height: 1.8;  /* 与编辑器保持一致的行高 */
+  letter-spacing: 0.05em;  /* 调整中文字间距 */
 }
 
-/* 标题样式优化 */
+/* 优化标题样式 */
 .ProseMirror h1 {
-  font-size: 2em;
-  margin: 1em 0 0.5em;
+  font-size: 1.8em;  /* 稍微调小，适合中文 */
+  margin: 1.2em 0 0.6em;
   font-weight: 600;
-  color: #1a202c;
-  line-height: 1.3;
+  line-height: 1.4;  /* 调整标题行高 */
 }
 
 .ProseMirror h2 {
-  font-size: 1.5em;
-  margin: 0.83em 0;
+  font-size: 1.4em;
+  margin: 1em 0;
   font-weight: 600;
-  color: #2d3748;
+  line-height: 1.4;
 }
 
-/* 列表样式优化 */
+/* 优化引用样式 */
+.ProseMirror blockquote {
+  border-left: 4px solid #e2e8f0;
+  margin: 1.2em 0;
+  padding: 0.5em 0 0.5em 1em;  /* 调整内边距 */
+  color: #4a5568;
+  font-size: 1em;  /* 保持与正文一致的字号 */
+}
+
+/* 添加选中文本的样式 */
+.ProseMirror ::selection {
+  background: rgba(66, 153, 225, 0.2);  /* 淡蓝色背景 */
+  color: inherit;
+}
+
+/* 优化代码块中的中文显示 */
+.ProseMirror pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, "Microsoft YaHei", monospace;
+  font-size: 0.9em;
+  padding: 1.2em;  /* 增加内边距 */
+  line-height: 1.6;
+  border: 1px solid #e2e8f0;  /* 添加边框 */
+}
+
+/* 改善列表样式 */
 .ProseMirror ul, .ProseMirror ol {
-  padding-left: 1.5em;
-  margin: 1em 0;
+  padding-left: 2em;  /* 增加缩进 */
+  margin: 1.2em 0;
 }
 
 .ProseMirror li {
-  margin: 0.5em 0;
-  line-height: 1.6;
+  margin: 0.6em 0;  /* 增加列表项间距 */
+  line-height: 1.8;  /* 与正文保持一致 */
 }
 
-/* 引用块样式 */
-.ProseMirror blockquote {
-  border-left: 4px solid #e2e8f0;
-  margin: 1em 0;
-  padding-left: 1em;
-  color: #4a5568;
-}
-
-/* 代码块样式优化 */
-.ProseMirror pre {
-  background: #f7fafc;
-  padding: 1em;
-  border-radius: 4px;
-  overflow-x: auto;
-  font-family: 'Fira Code', monospace;
-  font-size: 0.9em;
-  line-height: 1.5;
-}
-
-/* 链接样式 */
-.ProseMirror a {
-  color: #4299e1;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.ProseMirror a:hover {
-  color: #2b6cb0;
-  text-decoration: underline;
+.ProseMirror:focus {
+  outline: none;  /* 移除焦点框 */
 }
