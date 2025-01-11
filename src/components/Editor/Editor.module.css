@@ -104,6 +104,10 @@
 .ProseMirror ul, .ProseMirror ol {
   padding-left: 2em;  /* 增加缩进 */
   margin: 1.2em 0;
+/* 改善列表样式 */
+.ProseMirror ul, .ProseMirror ol {
+  padding-left: 2em;  /* 增加缩进 */
+  margin: 1.2em 0;
 }
 
 .ProseMirror li {
