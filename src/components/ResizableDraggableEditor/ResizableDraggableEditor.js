@@ -2,15 +2,15 @@ import React, { useRef, useState, useCallback, useEffect, forwardRef, useImperat
 import Editor from '../Editor/Editor';
 import './ResizableDraggableEditor.css';
 
-const ResizableDraggableEditor = forwardRef(({ 
-  onDelete, 
-  id, 
-  initialPosition, 
-  initialSize, 
-  initialDoc, 
-  initialZIndex, 
-  initialIsVisible, 
-  onUpdate 
+const ResizableDraggableEditor = forwardRef(({
+  onDelete,
+  id,
+  initialPosition,
+  initialSize,
+  initialDoc,
+  initialZIndex,
+  initialIsVisible,
+  onUpdate
 }, ref) => {
   const editorWrapperRef = useRef(null);
   const editorRef = useRef(null);
@@ -57,10 +57,7 @@ const ResizableDraggableEditor = forwardRef(({
     if (isDragging) {
       const newX = e.clientX - dragStart.x;
       const newY = e.clientY - dragStart.y;
-      setPosition({
-        x: newX,
-        y: newY
-      });
+      setPosition({ x: newX, y: newY });
       onUpdate(id, { position: { x: newX, y: newY } });
     } else if (isResizing) {
       let newWidth = size.width;
@@ -85,15 +82,14 @@ const ResizableDraggableEditor = forwardRef(({
         newY = position.y + deltaY;
       }
 
-      // 设置最小和最大尺寸
       newWidth = Math.max(300, Math.min(newWidth, 1200));
       newHeight = Math.max(200, Math.min(newHeight, 800));
 
       setSize({ width: newWidth, height: newHeight });
       setPosition({ x: newX, y: newY });
       setResizeStart({ x: e.clientX, y: e.clientY });
-      
-      onUpdate(id, { 
+
+      onUpdate(id, {
         size: { width: newWidth, height: newHeight },
         position: { x: newX, y: newY }
       });
@@ -109,20 +105,24 @@ const ResizableDraggableEditor = forwardRef(({
 
   const handleMouseDown = useCallback((e) => {
     if (isCtrlPressed) {
+      // 如果按住 CTRL 键并点击任何地方提升层级
+      bringToFront();
       setIsDragging(true);
       setDragStart({
         x: e.clientX - position.x,
         y: e.clientY - position.y
       });
-      e.preventDefault();
-      // 提升此编辑器到最前
-      setZIndex(prev => {
-        const newZIndex = prev + 1;
-        onUpdate(id, { zIndex: newZIndex });
-        return newZIndex;
+      e.preventDefault(); // 防止默认行为
+    } else if (e.target.classList.contains('editor-header')) {
+      // 正常情况下，点击头部进行拖拽
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
       });
+      e.preventDefault(); // 防止默认行为
     }
-  }, [isCtrlPressed, position, id, onUpdate]);
+  }, [isCtrlPressed, position]);
 
   const handleResizeMouseDown = useCallback((direction, e) => {
     setIsResizing(true);
@@ -130,7 +130,6 @@ const ResizableDraggableEditor = forwardRef(({
     setResizeStart({ x: e.clientX, y: e.clientY });
     e.preventDefault();
     e.stopPropagation();
-    // 设置相应的光标样式
     document.body.style.cursor = `${direction}-resize`;
   }, []);
 
@@ -171,12 +170,16 @@ const ResizableDraggableEditor = forwardRef(({
     onUpdate(id, { isVisible: newVisibility });
   };
 
-  const handleHeaderClick = () => {
+  const bringToFront = () => {
     setZIndex(prev => {
       const newZIndex = prev + 1;
       onUpdate(id, { zIndex: newZIndex });
       return newZIndex;
     });
+  };
+
+  const handleHeaderClick = () => {
+    bringToFront();
   };
 
   return (
@@ -216,7 +219,7 @@ const ResizableDraggableEditor = forwardRef(({
       <div className="editor-container">
         <Editor ref={editorRef} editorId={id} initialDoc={initialDoc} />
       </div>
-      
+
       {/* 调整大小的手柄 */}
       <div
         className="resize-handle resize-e"
