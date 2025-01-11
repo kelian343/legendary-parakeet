@@ -25,17 +25,14 @@ const ResizableDraggableEditor = forwardRef(({
   const [isVisible, setIsVisible] = useState(initialIsVisible !== undefined ? initialIsVisible : true);
   const [zIndex, setZIndex] = useState(initialZIndex || 1);
 
-  // 监听初始可见性变化
   useEffect(() => {
     setIsVisible(initialIsVisible);
   }, [initialIsVisible]);
 
-  // 监听初始 z-index 变化
   useEffect(() => {
     setZIndex(initialZIndex);
   }, [initialZIndex]);
 
-  // 暴露方法给父组件
   useImperativeHandle(ref, () => ({
     getContent: () => {
       if (editorRef.current) {
@@ -52,6 +49,23 @@ const ResizableDraggableEditor = forwardRef(({
       });
     }
   }));
+
+  const bringToFront = useCallback(() => {
+    setZIndex(prev => {
+      const newZIndex = prev + 1;
+      onUpdate(id, { zIndex: newZIndex });
+      return newZIndex;
+    });
+  }, [id, onUpdate]);
+
+  const handleResizeMouseDown = useCallback((direction, e) => {
+    setIsResizing(true);
+    setResizeDirection(direction);
+    setResizeStart({ x: e.clientX, y: e.clientY });
+    e.preventDefault();
+    e.stopPropagation();
+    document.body.style.cursor = `${direction}-resize`;
+  }, []);
 
   const handleMouseMove = useCallback((e) => {
     if (isDragging) {
@@ -85,7 +99,6 @@ const ResizableDraggableEditor = forwardRef(({
         newY = position.y + deltaY;
       }
 
-      // 设置最小和最大尺寸
       newWidth = Math.max(300, Math.min(newWidth, 1200));
       newHeight = Math.max(200, Math.min(newHeight, 800));
 
@@ -98,7 +111,7 @@ const ResizableDraggableEditor = forwardRef(({
         position: { x: newX, y: newY }
       });
     }
-  }, [isDragging, isResizing, dragStart, size, position, resizeStart, resizeDirection, id, onUpdate]);
+  }, [isDragging, isResizing, dragStart, resizeDirection, resizeStart, id, onUpdate]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -107,31 +120,37 @@ const ResizableDraggableEditor = forwardRef(({
     document.body.style.cursor = 'default';
   }, []);
 
-  const handleMouseDown = useCallback((e) => {
-    if (isCtrlPressed) {
+  const handleEditorMouseDown = useCallback((e) => {
+    if (isCtrlPressed && e.button === 0) {
       setIsDragging(true);
       setDragStart({
         x: e.clientX - position.x,
         y: e.clientY - position.y
       });
+      bringToFront(); // 在开始拖拽时提升层级
       e.preventDefault();
-      // 提升此编辑器到最前
-      setZIndex(prev => {
-        const newZIndex = prev + 1;
-        onUpdate(id, { zIndex: newZIndex });
-        return newZIndex;
-      });
     }
-  }, [isCtrlPressed, position, id, onUpdate]);
+  }, [isCtrlPressed, position, bringToFront]);
 
-  const handleResizeMouseDown = useCallback((direction, e) => {
-    setIsResizing(true);
-    setResizeDirection(direction);
-    setResizeStart({ x: e.clientX, y: e.clientY });
-    e.preventDefault();
+  const handleEditorClick = useCallback((e) => {
     e.stopPropagation();
-    // 设置相应的光标样式
-    document.body.style.cursor = `${direction}-resize`;
+  }, []);
+
+  const handleHeaderMouseDown = useCallback((e) => {
+    if (e.button === 0) { // 仅处理左键点击
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+      bringToFront(); // 在开始拖拽时提升层级
+      e.preventDefault();
+    }
+  }, [position, bringToFront]);
+
+  const handleHeaderClick = useCallback((e) => {
+    // 移除这个事件处理器，因为我们已经在 mousedown 中处理了层级提升
+    e.stopPropagation();
   }, []);
 
   const handleKeyDown = useCallback((e) => {
@@ -171,14 +190,6 @@ const ResizableDraggableEditor = forwardRef(({
     onUpdate(id, { isVisible: newVisibility });
   };
 
-  const handleHeaderClick = () => {
-    setZIndex(prev => {
-      const newZIndex = prev + 1;
-      onUpdate(id, { zIndex: newZIndex });
-      return newZIndex;
-    });
-  };
-
   return (
     <div
       className={`editor-wrapper ${!isVisible ? 'hidden' : ''}`}
@@ -192,10 +203,15 @@ const ResizableDraggableEditor = forwardRef(({
         cursor: isDragging ? 'grabbing' : (isCtrlPressed ? 'grab' : 'auto'),
         zIndex: zIndex
       }}
-      onMouseDown={handleMouseDown}
+      onMouseDown={handleEditorMouseDown}
+      onClick={handleEditorClick}
       data-editor-id={id}
     >
-      <div className="editor-header" onMouseDown={handleHeaderClick}>
+      <div 
+        className="editor-header" 
+        onMouseDown={handleHeaderMouseDown}
+        // onClick={handleHeaderClick}
+      >
         <button
           className="editor-button delete-button"
           onClick={handleDelete}
@@ -217,7 +233,6 @@ const ResizableDraggableEditor = forwardRef(({
         <Editor ref={editorRef} editorId={id} initialDoc={initialDoc} />
       </div>
       
-      {/* 调整大小的手柄 */}
       <div
         className="resize-handle resize-e"
         onMouseDown={(e) => handleResizeMouseDown('e', e)}
