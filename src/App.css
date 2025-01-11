@@ -1,79 +1,222 @@
 /* src/App.css */
-.App {
-  text-align: center;
-  height: 100vh; /* 固定高度 */
-  /*background-color: #282c34; 日间模式 */
-  background-color: #1a1b1e; /* 更深的背景色 */
-  overflow: hidden; /* 防止页面滚动 */
-  position: relative; /* 为绝对定位的编辑器提供参考 */
-}
 
-.App-header {
-  height: 100vh; /* 固定高度 */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 40px;
-  color: white;
-  position: relative;
-  overflow: hidden; /* 防止容器滚动 */
-  width: 100%;
-}
-
-.content-display {
-  margin-top: 20px;
-  width: 80%;
-  max-width: 800px;
-  text-align: left;
-  background: #fff;
-  color: #000;
-  padding: 10px;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-height: 200px;
-  overflow: auto;
-}
-
-.content-display ul {
-  list-style: none;
+/* Global Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
   padding: 0;
 }
 
-.content-display li {
-  padding: 5px 0;
-  border-bottom: 1px solid #eee;
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Hiragino Sans GB", "STHeiti", "SimSun", sans-serif;
 }
 
-/* 防止编辑器实例覆盖内容显示区域 */
-.editor-wrapper {
-  z-index: 10;
+/* App Container */
+.App {
+  text-align: center;
+  height: 100vh; /* Fixed height */
+  overflow: hidden; /* Prevent page scrolling */
+  position: relative; /* Reference for absolutely positioned editors */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-
-.ProseMirror:focus {
-  outline: none;  /* 移除焦点框 */
+/* Dark Theme Variables */
+.App.dark {
+  --background-color: #1a1b1e; /* Darker background */
+  --text-color: #e2e2e3; /* Light text */
+  --editor-background: #25262b; /* Editor dark background */
+  --editor-text-color: #e2e2e3; /* Editor light text */
+  --editor-border-color: #393a3f; /* Editor border color */
+  --console-background: #2c2c2c;
+  --console-text-color: #e2e2e3;
+  --console-border-color: #444;
+  --scrollbar-track: #1a1b1e;
+  --scrollbar-thumb: #555555;
 }
 
+/* Light Theme Variables */
+.App.light {
+  --background-color: #f0f0f0; /* Light background */
+  --text-color: #2d3748; /* Dark text */
+  --editor-background: #ffffff; /* Editor light background */
+  --editor-text-color: #000000; /* Editor dark text */
+  --editor-border-color: #ccc; /* Editor border color */
+  --console-background: #ffffff;
+  --console-text-color: #333333;
+  --console-border-color: #ccc;
+  --scrollbar-track: #f0f0f0;
+  --scrollbar-thumb: #aaaaaa;
+}
 
+/* Apply Theme Variables */
+.App {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
 
+/* App Header */
+.App-header {
+  height: 60px; /* Adjusted height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: inherit;
+  position: relative;
+  width: 100%;
+  z-index: 5;
+}
 
-
-/* 文本左对齐 */
-.editor-wrapper {
-  user-select: none;
+/* Content Display as Console */
+.content-display {
   position: absolute;
+  top: 80px; /* Positioned below the header */
+  left: 20px;
+  width: 300px;
+  max-width: 80%;
+  background: var(--console-background);
+  color: var(--console-text-color);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  overflow: auto;
+  max-height: 90vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light Theme for content-display */
+.App.light .content-display {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme Switcher Styles */
+.theme-switcher {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.theme-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  transition: transform 0.2s ease;
+}
+
+.theme-button:hover {
+  transform: scale(1.2);
+}
+
+/* Console Header */
+.console-header {
+  background: var(--console-background);
+  color: var(--console-text-color);
+  padding: 10px;
+  border-bottom: 1px solid var(--console-border-color);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.App.light .console-header {
+  border-bottom: 1px solid var(--console-border-color);
+}
+
+/* Console Body */
+.console-body {
+  padding: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+}
+
+.console-body h2 {
+  margin-top: 0;
+  border-bottom: 1px solid var(--console-border-color);
+  padding-bottom: 5px;
+}
+
+.App.light .console-body h2 {
+  border-bottom: 1px solid var(--console-border-color);
+}
+
+.console-body ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.console-body li {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--console-border-color);
+}
+
+.App.light .console-body li {
+  border-bottom: 1px solid var(--console-border-color);
+}
+
+.console-body p {
+  margin: 10px 0;
+}
+
+/* Console Input */
+.console-input {
+  margin-top: 10px;
+}
+
+.console-input input {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  box-sizing: border-box;
+  background: var(--editor-background);
+  color: var(--editor-text-color);
+  transition: box-shadow 0.3s ease;
+}
+
+.console-input input:focus {
+  outline: none;
+  box-shadow: 0 0 5px #4299e1;
+}
+
+.App.light .console-input input::placeholder {
+  color: #aaaaaa;
+}
+
+.console-input input::placeholder {
+  color: #888888;
+}
+
+/* Scrollbar Styling for content-display */
+.content-display::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-display::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.content-display::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.App.light .content-display::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+}
+
+/* ProseMirror Focus */
+.ProseMirror:focus {
+  outline: none;  /* Remove focus outline */
 }
 
 .editor-container {
-  /*background: white; 日间模式 */
-  background: #25262b; /* 深色背景 */
-  /*color: black;日间模式 */
-  color: #e2e2e3; /* 浅色文字 */
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  border-radius: 4px;
   text-align: left; /* 确保文本左对齐 */
   box-sizing: border-box;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

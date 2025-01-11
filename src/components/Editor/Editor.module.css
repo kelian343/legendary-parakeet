@@ -1,72 +1,69 @@
+/* src/components/Editor/Editor.module.css */
+
 .editor {
-  /* 原有样式保持不变 */
-  /*background: #ffffff; 日间模式 */
-  background: #25262b; /* 夜间模式 */
-  /*color: #2d3748; 日间模式 */
-  color: #e2e2e3; /* 浅色文字 */
+  /* Use CSS variables for background and text colors */
+  background: var(--editor-background);
+  color: var(--editor-text-color);
   width: 100%;
   height: 100%;
   padding: 24px;
   box-sizing: border-box;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-
-  /* 修改字体堆叠，优化中文显示 */
+  
+  /* Modify font stack for better Chinese display */
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Hiragino Sans GB", "STHeiti", "SimSun", sans-serif;
   
-  /* 调整字号和行高，适合中文阅读 */
+  /* Adjust font size and line height for better readability */
   font-size: 16px;
-  line-height: 1.8;  /* 增加行高，提高中文可读性 */
+  line-height: 1.8;  /* Increase line height for better readability */
   
-  /* 增加字重，让中文显示更清晰 */
+  /* Increase font weight for clearer Chinese text */
   font-weight: 400;
   
-  /* 添加字体平滑效果 */
+  /* Add font smoothing */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   
-  border: none;  /* 移除边框 */
-  outline: none; /* 移除焦点边框 */
+  border: none;  /* Remove border */
+  outline: none; /* Remove focus outline */
 }
 
-/* 基础文档样式 */
+/* Basic ProseMirror Styles */
 .ProseMirror {
   outline: none;
   min-height: calc(100% - 40px);
   
-  /* 默认字体设置 */
+  /* Use CSS variables for font settings */
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Hiragino Sans GB", "STHeiti", "SimSun", sans-serif;
   font-size: 16px;
   line-height: 1.8;
-  /*color: #2d3748; 日间模式 */
-  color: #e2e2e3;
+  color: var(--editor-text-color);
   
-  /* 提升文本渲染质量 */
+  /* Enhance text rendering */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* 文本节点间距优化 */
+/* Optimize spacing between text nodes */
 .ProseMirror > * + * {
-  margin-top: 1.2em;  /* 相邻块级元素之间的间距 */
+  margin-top: 1.2em;  /* Spacing between adjacent block elements */
 }
 
-
-
-/* 优化段落样式 */
+/* Optimize paragraph styles */
 .ProseMirror p {
-  margin: 1.2em 0;  /* 增加段落间距 */
-  line-height: 1.8;  /* 与编辑器保持一致的行高 */
-  letter-spacing: 0.05em;  /* 调整中文字间距 */
+  margin: 1.2em 0;  /* Increase paragraph spacing */
+  line-height: 1.8;  /* Consistent line height with editor */
+  letter-spacing: 0.05em;  /* Adjust letter spacing for Chinese text */
 }
 
-/* 优化标题样式 */
+/* Optimize heading styles */
 .ProseMirror h1 {
-  font-size: 1.8em;  /* 稍微调小，适合中文 */
+  font-size: 1.8em;  /* Slightly smaller for Chinese */
   margin: 1.2em 0 0.6em;
   font-weight: 600;
-  line-height: 1.4;  /* 调整标题行高 */
+  line-height: 1.4;  /* Adjust heading line height */
 }
 
 .ProseMirror h2 {
@@ -76,41 +73,43 @@
   line-height: 1.4;
 }
 
-/* 优化引用样式 */
+/* Optimize blockquote styles */
 .ProseMirror blockquote {
   border-left: 4px solid #e2e8f0;
   margin: 1.2em 0;
-  padding: 0.5em 0 0.5em 1em;  /* 调整内边距 */
+  padding: 0.5em 0 0.5em 1em;  /* Adjust padding */
   color: #4a5568;
-  font-size: 1em;  /* 保持与正文一致的字号 */
+  font-size: 1em;  /* Consistent font size with body */
 }
 
-/* 添加选中文本的样式 */
+/* Add text selection styles */
 .ProseMirror ::selection {
-  background: rgba(66, 153, 225, 0.2);  /* 淡蓝色背景 */
+  background: rgba(66, 153, 225, 0.2);  /* Light blue background */
   color: inherit;
 }
 
-/* 优化代码块中的中文显示 */
+/* Optimize code block styles for Chinese */
 .ProseMirror pre {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, "Microsoft YaHei", monospace;
   font-size: 0.9em;
-  padding: 1.2em;  /* 增加内边距 */
+  padding: 1.2em;  /* Increase padding */
   line-height: 1.6;
-  border: 1px solid #e2e8f0;  /* 添加边框 */
+  border: 1px solid #e2e8f0;  /* Add border */
 }
 
-/* 改善列表样式 */
-.ProseMirror ul, .ProseMirror ol {
-  padding-left: 2em;  /* 增加缩进 */
+/* Improve list styles */
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 2em;  /* Increase indentation */
   margin: 1.2em 0;
 }
 
 .ProseMirror li {
-  margin: 0.6em 0;  /* 增加列表项间距 */
-  line-height: 1.8;  /* 与正文保持一致 */
+  margin: 0.6em 0;  /* Increase list item spacing */
+  line-height: 1.8;  /* Consistent line height with body */
 }
 
+/* Remove focus outline */
 .ProseMirror:focus {
-  outline: none;  /* 移除焦点框 */
+  outline: none;
 }

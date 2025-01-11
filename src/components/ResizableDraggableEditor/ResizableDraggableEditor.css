@@ -1,82 +1,85 @@
-/* src/components/ResizableDraggableEditor/ResizableDraggableEditor.css */
+/* src/components/ResizableDraggableEditor/ResizableDraggableEditor.module.css */
+
 .editor-wrapper {
   user-select: none;
   position: absolute;
-  /*background: white; 日间模式 */
-  background: #25262b; /* 深色背景 */
+  background: var(--editor-background); /* Use CSS variable */
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .editor-wrapper.hidden {
-  opacity: 0.0; /* 完全透明 */
-  pointer-events: none;  /*禁用所有指针事件 */
+  opacity: 0.0; /* Fully transparent */
+  pointer-events: none;  /* Disable all pointer events */
 }
 
 .editor-wrapper:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
-/* 编辑器头部样式优化 */
+/* Editor Header Styles */
 .editor-header {
-  position: sticky; /* 改为sticky定位 */
+  position: sticky; /* Changed to sticky positioning */
   top: 0;
   left: 0;
   width: 100%;
   height: 40px;
-  /*background: rgba(247, 250, 252, 0.95); 半透明背景 */
-  background: rgba(45, 46, 50, 0.95); /* 深色半透明背景 */
-  backdrop-filter: blur(8px); /* 毛玻璃效果 */
+  background: rgba(45, 46, 50, 0.95); /* Semi-transparent dark background */
+  backdrop-filter: blur(8px); /* Frosted glass effect */
   display: flex;
   justify-content: flex-end;
   align-items: center;
   padding: 0 12px;
   box-sizing: border-box;
-  /*border-bottom: 1px solid #e2e8f0; 日间模式*/
-  border-bottom: 1px solid #393a3f; /* 更深的边框颜色 */
-  z-index: 20; /* 确保始终在内容之上 */
+  border-bottom: 1px solid var(--editor-border-color); /* Use CSS variable */
+  z-index: 20; /* Ensure it stays above content */
 }
 
-/* 按钮样式 */
+.App.light .editor-header {
+  background: rgba(245, 245, 245, 0.95); /* Semi-transparent light background */
+  border-bottom: 1px solid var(--editor-border-color);
+}
+
+/* Button Styles */
 .editor-button {
   background: transparent;
   border: none;
   cursor: pointer;
   font-size: 18px;
   padding: 0 5px;
-  color: #a9a9b2; /* 浅灰色 */
+  color: #a9a9b2; /* Light gray */
   transition: color 0.2s;
 }
 
 .editor-button:hover {
-  /*color: #ff4d4d;  悬停时按钮颜色变红 */
-  color: #ff6b6b; /* 更柔和的红色 */
+  color: #ff6b6b; /* Softer red on hover */
 }
 
 .hide-button {
-  color: #555;
+  color: #555555;
 }
 
 .hide-button:hover {
-  color: #000;
+  color: #000000;
 }
 
-/* 编辑器内容样式 */
+/* Editor Content Styles */
 .editor-container {
   width: 100%;
   height: 100%;
-  padding: 35px 20px 20px 20px; /* 上方留出头部空间 */
+  padding: 35px 20px 20px 20px; /* Leave space for header */
   box-sizing: border-box;
-  overflow: auto; /* 保留编辑器的滚动条 */
-  background: #25262b; /* 深色背景 */
-  color: #e2e2e3; /* 浅色文字 */
-  overflow-y: auto !important; /* 确保滚动条显示 */
+  overflow: auto; /* Keep editor scrollbars */
+  background: var(--editor-background); /* Use CSS variable */
+  color: var(--editor-text-color); /* Use CSS variable */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* 调整大小的手柄样式 */
+/* Resize Handle Styles */
 .resize-handle {
   position: absolute;
   background: transparent;
@@ -146,24 +149,22 @@
   top: -6px;
 }
 
-/* 添加活动状态样式 */
+/* Active State Styles */
 .editor-wrapper.active {
   box-shadow: 0 0 0 2px #4299e1;
 }
 
-/* 滚动条样式 - 注意选择器的正确性 */
+/* Scrollbar Styling */
 .editor-container::-webkit-scrollbar {
-  width: 8px !important;
-  display: block !important;
+  width: 8px;
 }
 
 .editor-container::-webkit-scrollbar-track {
-  background: #2c2d31;
-  border-radius: 4px;
+  background: var(--scrollbar-track); /* Use CSS variable */
 }
 
 .editor-container::-webkit-scrollbar-thumb {
-  background: #404147;
+  background: var(--scrollbar-thumb); /* Use CSS variable */
   border-radius: 4px;
 }
 
@@ -171,7 +172,7 @@
   background: #4a4b52;
 }
 
-/* 添加拖拽状态样式 */
+/* Dragging and Transitioning States */
 .editor-wrapper.dragging {
   opacity: 0.8;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -181,6 +182,7 @@
   transition: all 0.3s ease;
 }
 
+/* Remove focus outline */
 .ProseMirror:focus {
-  outline: none;  /* 移除焦点框 */
+  outline: none;
 }
