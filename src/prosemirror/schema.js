@@ -1,31 +1,75 @@
+// src/prosemirror/schema.js
 import { Schema } from 'prosemirror-model';
-import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
+import { schema as basicSchema } from 'prosemirror-schema-basic';
 
-// 扩展基本节点以包含列表
+// Add list nodes to the basic schema
 const nodes = addListNodes(basicSchema.spec.nodes, "paragraph block*", "block");
 
-// 定义所有 marks
+// Add horizontal rule node
+const nodesWithHR = nodes.addToEnd("horizontal_rule", {
+  group: "block",
+  parseDOM: [{tag: "hr"}],
+  toDOM() { return ["hr"] }
+});
+
+// Define marks
 const marks = {
-  // 包含基本 schema 中的所有 marks
   ...basicSchema.spec.marks,
 
-  // 添加 font mark
-  font: {
+  // Existing marks
+  strong: {
+    parseDOM: [
+      { tag: "strong" },
+      { tag: "b" },
+      { style: "font-weight=700" },
+      { style: "font-weight=bold" }
+    ],
+    toDOM() { return ["strong"] }
+  },
+
+  em: {
+    parseDOM: [
+      { tag: "i" },
+      { tag: "em" },
+      { style: "font-style=italic" }
+    ],
+    toDOM() { return ["em"] }
+  },
+
+  code: {
+    parseDOM: [{ tag: "code" }],
+    toDOM() { return ["code"] }
+  },
+
+  // Link mark with support for titles
+  link: {
     attrs: {
-      font: { default: 'Arial' }
+      href: { default: '' },
+      title: { default: null }
     },
     inclusive: false,
     parseDOM: [{
-      style: 'font-family',
-      getAttrs: value => ({ font: value })
+      tag: 'a[href]',
+      getAttrs(dom) {
+        return {
+          href: dom.getAttribute('href'),
+          title: dom.getAttribute('title')
+        }
+      }
     }],
-    toDOM: mark => ['span', {
-      style: `font-family: ${mark.attrs.font}`
-    }, 0]
+    toDOM(mark) {
+      const { href, title } = mark.attrs;
+      return ['a', {
+        href,
+        title,
+        rel: 'noopener noreferrer',
+        target: '_blank'
+      }]
+    }
   },
 
-  // 添加双向链接 mark
+  // Existing bidirectional_link mark
   bidirectional_link: {
     attrs: {
       id: { default: null },
@@ -51,9 +95,9 @@ const marks = {
   }
 };
 
-// 创建最终的 schema
+// Create and export schema
 const schema = new Schema({
-  nodes,
+  nodes: nodesWithHR,
   marks
 });
 

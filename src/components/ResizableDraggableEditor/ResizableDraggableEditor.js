@@ -82,8 +82,8 @@ const ResizableDraggableEditor = forwardRef(({
         newY = position.y + deltaY;
       }
 
-      newWidth = Math.max(300, Math.min(newWidth, 1200));
-      newHeight = Math.max(200, Math.min(newHeight, 800));
+      newWidth = Math.max(300, Math.min(newWidth, 2400));
+      newHeight = Math.max(200, Math.min(newHeight, 1600));
 
       setSize({ width: newWidth, height: newHeight });
       setPosition({ x: newX, y: newY });
