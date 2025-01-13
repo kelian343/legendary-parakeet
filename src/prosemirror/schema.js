@@ -6,18 +6,12 @@ import { schema as basicSchema } from 'prosemirror-schema-basic';
 // Add list nodes to the basic schema
 const nodes = addListNodes(basicSchema.spec.nodes, "paragraph block*", "block");
 
-// Add horizontal rule node
-const nodesWithHR = nodes.addToEnd("horizontal_rule", {
-  group: "block",
-  parseDOM: [{tag: "hr"}],
-  toDOM() { return ["hr"] }
-});
-
 // Define marks
 const marks = {
+  // Include basic schema marks
   ...basicSchema.spec.marks,
 
-  // Existing marks
+  // Bold mark
   strong: {
     parseDOM: [
       { tag: "strong" },
@@ -28,48 +22,7 @@ const marks = {
     toDOM() { return ["strong"] }
   },
 
-  em: {
-    parseDOM: [
-      { tag: "i" },
-      { tag: "em" },
-      { style: "font-style=italic" }
-    ],
-    toDOM() { return ["em"] }
-  },
-
-  code: {
-    parseDOM: [{ tag: "code" }],
-    toDOM() { return ["code"] }
-  },
-
-  // Link mark with support for titles
-  link: {
-    attrs: {
-      href: { default: '' },
-      title: { default: null }
-    },
-    inclusive: false,
-    parseDOM: [{
-      tag: 'a[href]',
-      getAttrs(dom) {
-        return {
-          href: dom.getAttribute('href'),
-          title: dom.getAttribute('title')
-        }
-      }
-    }],
-    toDOM(mark) {
-      const { href, title } = mark.attrs;
-      return ['a', {
-        href,
-        title,
-        rel: 'noopener noreferrer',
-        target: '_blank'
-      }]
-    }
-  },
-
-  // Existing bidirectional_link mark
+  // Bidirectional link mark
   bidirectional_link: {
     attrs: {
       id: { default: null },
@@ -95,9 +48,9 @@ const marks = {
   }
 };
 
-// Create and export schema
+// Create and export the final schema
 const schema = new Schema({
-  nodes: nodesWithHR,
+  nodes,
   marks
 });
 

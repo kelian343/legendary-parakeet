@@ -31,20 +31,16 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
   const viewRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 处理编辑器内容变化
+  // Optimized content change handler for better markdown processing
   const handleContentChange = useCallback((tr) => {
     if (!viewRef.current) return;
 
     try {
-      // 获取当前视图的状态
       const currentState = viewRef.current.state;
-      
-      // 创建新的事务
       let newTr = currentState.tr;
       
-      // 如果是文档改变，复制改变到新事务
+      // Handle document changes with markdown awareness
       if (tr.docChanged) {
-        // 获取所有步骤并应用
         tr.steps.forEach((step, i) => {
           try {
             newTr = newTr.step(step);
@@ -54,28 +50,26 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
         });
       }
 
-      // 复制选择
+      // Handle selection and stored marks
       if (tr.selectionSet) {
         newTr.setSelection(tr.selection);
       }
-
-      // 复制存储标记
       if (tr.storedMarksSet) {
         newTr.setStoredMarks(tr.storedMarks);
       }
 
-      // 应用新的状态
+      // Apply state changes
       const newState = currentState.apply(newTr);
       viewRef.current.updateState(newState);
 
-      // 更新编辑器容器的滚动状态
+      // Handle scrolling
       if (editorRef.current) {
         const editorHeight = editorRef.current.offsetHeight;
         const contentHeight = viewRef.current.dom.offsetHeight;
         editorRef.current.style.overflowY = contentHeight > editorHeight ? 'auto' : 'hidden';
       }
 
-      // 只在内容真正发生变化时才保存
+      // Save content changes
       if (newTr.docChanged) {
         const contentToStore = {
           timestamp: Date.now(),
@@ -85,8 +79,7 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
       }
     } catch (error) {
       console.error('Error in handleContentChange:', error);
-      
-      // 如果出现错误，尝试恢复到最后的有效状态
+      // Recovery logic remains the same
       if (viewRef.current) {
         try {
           const recoveryState = EditorState.create({
@@ -233,7 +226,7 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
     }
   }));
 
-  // 初始化编辑器
+  // Initialize editor
   useEffect(() => {
     const initializeEditor = async () => {
       if (editorRef.current && !viewRef.current) {
@@ -242,13 +235,13 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
         let initialDocument = null;
 
         try {
-          // 创建一个基础文档结构
           const createEmptyDoc = () => {
             return schema.node("doc", null, [
               schema.node("paragraph", null, [])
             ]);
           };
 
+          // Initialize document
           if (initialDoc) {
             try {
               initialDocument = schema.nodeFromJSON(initialDoc);
@@ -276,24 +269,23 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
             }
           }
 
-          // 创建编辑器状态
+          // Create editor state with markdown-aware plugins
           const state = EditorState.create({
             schema,
             doc: initialDocument,
             plugins: createPluginsList(editorId),
           });
 
-          // 创建编辑器视图
+          // Create editor view with markdown support
           if (!viewRef.current) {
             const view = new EditorView(editorRef.current, {
               state,
               dispatchTransaction: (transaction) => {
                 try {
-                  // 直接应用事务，简化处理逻辑
                   const newState = view.state.apply(transaction);
                   view.updateState(newState);
 
-                  // 如果文档发生改变，保存内容
+                  // Handle content changes
                   if (transaction.docChanged) {
                     const contentToStore = {
                       timestamp: Date.now(),
@@ -302,7 +294,7 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
                     debouncedSave(contentToStore, editorId, onUpdate);
                   }
 
-                  // 更新滚动状态
+                  // Handle scrolling
                   if (editorRef.current) {
                     const editorHeight = editorRef.current.offsetHeight;
                     const contentHeight = view.dom.offsetHeight;
@@ -310,7 +302,7 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
                   }
                 } catch (error) {
                   console.error('Transaction error:', error);
-                  // 发生错误时，尝试恢复到最后的有效状态
+                  // Recovery logic
                   try {
                     const recoveryState = EditorState.create({
                       schema: view.state.schema,
@@ -338,7 +330,6 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
                   editorRef.current.classList.remove('focused');
                 },
                 beforeinput: (view, event) => {
-                  // 防止某些浏览器的自动修正行为
                   if (event.inputType === 'historyUndo' || event.inputType === 'historyRedo') {
                     event.preventDefault();
                     return true;
@@ -351,7 +342,6 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
             viewRef.current = view;
             console.log('Editor initialized successfully');
           }
-
         } catch (error) {
           console.error('Editor initialization failed:', error);
           initialDocument = schema.node("doc", null, [
@@ -374,7 +364,6 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
     };
   }, [editorId, initialDoc, onUpdate]);
 
-  // 渲染编辑器
   return (
     <div 
       className={`editor ${isLoading ? 'loading' : ''}`} 

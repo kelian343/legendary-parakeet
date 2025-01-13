@@ -1,115 +1,146 @@
 /* src/components/Editor/Editor.module.css */
 
+/* Define CSS variables for theming */
+:root {
+  --editor-background: #ffffff;
+  --editor-text-color: #2d3748;
+  --editor-quote-bg: #f8fafc;
+  --editor-quote-color: #4a5568;
+  --editor-selection-bg: rgba(66, 153, 225, 0.2);
+  --editor-heading-color: #1a202c;
+}
+
+/* Dark theme variables */
+[data-theme="dark"] {
+  --editor-background: #1a202c;
+  --editor-text-color: #e2e8f0;
+  --editor-quote-bg: #2d3748;
+  --editor-quote-color: #a0aec0;
+  --editor-selection-bg: rgba(66, 153, 225, 0.3);
+  --editor-heading-color: #f7fafc;
+}
+
 .editor {
-  /* Use CSS variables for background and text colors */
   background: var(--editor-background);
   color: var(--editor-text-color);
   width: 100%;
   height: 100%;
   padding: 24px;
   box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  
-  /* Modify font stack for better Chinese display */
-  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Hiragino Sans GB", "STHeiti", "SimSun", sans-serif;
-  
-  /* Adjust font size and line height for better readability */
-  font-size: 16px;
-  line-height: 1.8;  /* Increase line height for better readability */
-  
-  /* Increase font weight for clearer Chinese text */
-  font-weight: 400;
-  
-  /* Add font smoothing */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  
-  border: none;  /* Remove border */
-  outline: none; /* Remove focus outline */
-}
-
-/* Basic ProseMirror Styles */
-.ProseMirror {
-  outline: none;
-  min-height: calc(100% - 40px);
-  
-  /* Use CSS variables for font settings */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Hiragino Sans GB", "STHeiti", "SimSun", sans-serif;
   font-size: 16px;
   line-height: 1.8;
-  color: var(--editor-text-color);
-  
-  /* Enhance text rendering */
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  border: none;
+  outline: none;
+  transition: all 0.3s ease;
 }
 
-/* Optimize spacing between text nodes */
+/* Enhanced ProseMirror Styles */
+.ProseMirror {
+  outline: none;
+  min-height: calc(100% - 40px);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--editor-text-color);
+}
+
+/* Block Elements Spacing */
 .ProseMirror > * + * {
-  margin-top: 1.2em;  /* Spacing between adjacent block elements */
+  margin-top: 1.2em;
 }
 
-/* Optimize paragraph styles */
+/* Paragraph Styles */
 .ProseMirror p {
-  margin: 1.2em 0;  /* Increase paragraph spacing */
-  line-height: 1.8;  /* Consistent line height with editor */
-  letter-spacing: 0.05em;  /* Adjust letter spacing for Chinese text */
+  margin: 1.2em 0;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
 }
 
-/* Optimize heading styles */
-.ProseMirror h1 {
-  font-size: 1.8em;  /* Slightly smaller for Chinese */
-  margin: 1.2em 0 0.6em;
-  font-weight: 600;
-  line-height: 1.4;  /* Adjust heading line height */
-}
-
-.ProseMirror h2 {
-  font-size: 1.4em;
-  margin: 1em 0;
+/* Enhanced Heading Styles */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  color: var(--editor-heading-color);
   font-weight: 600;
   line-height: 1.4;
+  margin: 1.5em 0 0.8em;
 }
 
-/* Optimize blockquote styles */
+.ProseMirror h1 { font-size: 2em; }
+.ProseMirror h2 { font-size: 1.5em; }
+.ProseMirror h3 { font-size: 1.3em; }
+.ProseMirror h4 { font-size: 1.2em; }
+.ProseMirror h5 { font-size: 1.1em; }
+.ProseMirror h6 { font-size: 1em; }
+
+/* Markdown Bold Style */
+.ProseMirror strong {
+  font-weight: 600;
+}
+
+/* Quote Block Styles */
 .ProseMirror blockquote {
-  border-left: 4px solid #e2e8f0;
+  background: var(--editor-quote-bg);
   margin: 1.2em 0;
-  padding: 0.5em 0 0.5em 1em;  /* Adjust padding */
-  color: #4a5568;
-  font-size: 1em;  /* Consistent font size with body */
+  padding: 1em 1.5em;
+  border-radius: 4px;
+  color: var(--editor-quote-color);
+  font-style: italic;
 }
 
-/* Add text selection styles */
+/* Indentation Styles */
+.ProseMirror .indent-4 {
+  margin-left: 4em;
+}
+
+.ProseMirror .indent-8 {
+  margin-left: 8em;
+}
+
+/* Selection Styles */
 .ProseMirror ::selection {
-  background: rgba(66, 153, 225, 0.2);  /* Light blue background */
+  background: var(--editor-selection-bg);
   color: inherit;
 }
 
-/* Optimize code block styles for Chinese */
-.ProseMirror pre {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, "Microsoft YaHei", monospace;
-  font-size: 0.9em;
-  padding: 1.2em;  /* Increase padding */
-  line-height: 1.6;
-  border: 1px solid #e2e8f0;  /* Add border */
+/* Loading State */
+.editor.loading {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
-/* Improve list styles */
-.ProseMirror ul,
-.ProseMirror ol {
-  padding-left: 2em;  /* Increase indentation */
-  margin: 1.2em 0;
+.editor-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 1.1em;
+  color: var(--editor-text-color);
 }
 
-.ProseMirror li {
-  margin: 0.6em 0;  /* Increase list item spacing */
-  line-height: 1.8;  /* Consistent line height with body */
+/* Focus State */
+.editor.focused {
+  box-shadow: 0 4px 16px rgba(66, 153, 225, 0.1);
 }
 
-/* Remove focus outline */
-.ProseMirror:focus {
-  outline: none;
+/* Print Optimization */
+@media print {
+  .editor {
+    box-shadow: none;
+    padding: 0;
+  }
+  
+  .ProseMirror {
+    min-height: auto;
+  }
 }
+
