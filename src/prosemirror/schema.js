@@ -6,6 +6,13 @@ import { schema as basicSchema } from 'prosemirror-schema-basic';
 // Add list nodes to the basic schema
 const nodes = addListNodes(basicSchema.spec.nodes, "paragraph block*", "block");
 
+// Add horizontal rule node
+const nodesWithHR = nodes.addToEnd("horizontal_rule", {
+  group: "block",
+  parseDOM: [{tag: "hr"}],
+  toDOM() { return ["hr"] }
+});
+
 // Define marks
 const marks = {
   // Include basic schema marks
@@ -20,6 +27,16 @@ const marks = {
       { style: "font-weight=bold" }
     ],
     toDOM() { return ["strong"] }
+  },
+
+  // Italic mark
+  em: {
+    parseDOM: [
+      { tag: "i" },
+      { tag: "em" },
+      { style: "font-style=italic" }
+    ],
+    toDOM() { return ["em"] }
   },
 
   // Bidirectional link mark
@@ -48,9 +65,9 @@ const marks = {
   }
 };
 
-// Create and export the final schema
+// Create and export schema with HR support
 const schema = new Schema({
-  nodes,
+  nodes: nodesWithHR,
   marks
 });
 

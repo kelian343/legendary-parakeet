@@ -1,7 +1,7 @@
 // src/prosemirror/markdownInputRules.js
 import { InputRule } from 'prosemirror-inputrules';
 
-// Helper for text marks (bold)
+// Helper for text marks (bold and italic)
 function markInputRule(regexp, markType) {
   return new InputRule(regexp, (state, match, start, end) => {
     const textStart = start + match[0].indexOf(match[2]);
@@ -40,13 +40,33 @@ function indentRule(regexp, spaces) {
   });
 }
 
+// Helper for horizontal rule
+function horizontalRuleRule(regexp, nodeType) {
+  return new InputRule(regexp, (state, match, start, end) => {
+    try {
+      const tr = state.tr.replaceRangeWith(start, end, nodeType.create());
+      return tr;
+    } catch (e) {
+      console.error('Error in horizontalRuleRule:', e);
+      return null;
+    }
+  });
+}
+
 export function createMarkdownInputRules(schema) {
   const rules = [];
 
-  // Bold: **text**
+  // Bold: +text+
   if (schema.marks.strong) {
     rules.push(
-      markInputRule(/(\*\*)(\s*[^*]+?\s*)(\*\*)$/, schema.marks.strong)
+      markInputRule(/(\+)(\s*[^+]+?\s*)(\+)$/, schema.marks.strong)
+    );
+  }
+
+  // Italic: -text-
+  if (schema.marks.em) {
+    rules.push(
+      markInputRule(/(-)(\s*[^-]+?)(-)$/, schema.marks.em)
     );
   }
 
@@ -62,9 +82,15 @@ export function createMarkdownInputRules(schema) {
     );
   }
 
-  // Indentation rules
-  rules.push(indentRule(/^\*\s$/, 4));  // * and space for 4 spaces
-  rules.push(indentRule(/^\+\s$/, 8));  // + and space for 8 spaces
+  // Single indentation rule: * and space for 8 spaces
+  rules.push(indentRule(/^\*\s$/, 8));
+
+  // Horizontal rule: ---, ***, ___
+  if (schema.nodes.horizontal_rule) {
+    rules.push(
+      horizontalRuleRule(/^(?:---|\*\*\*|___)\s$/, schema.nodes.horizontal_rule)
+    );
+  }
 
   return rules;
 }
