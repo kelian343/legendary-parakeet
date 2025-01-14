@@ -369,6 +369,7 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
       className={`editor ${isLoading ? 'loading' : ''}`} 
       ref={editorRef}
       data-editor-id={editorId}
+      style={{ fontSize: '18px' }} // Add direct style as backup
     >
       {isLoading && (
         <div className="editor-loading">
