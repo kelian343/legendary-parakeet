@@ -3,8 +3,21 @@ import { Schema } from 'prosemirror-model';
 import { addListNodes } from 'prosemirror-schema-list';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 
-// Add list nodes to the basic schema
-const nodes = addListNodes(basicSchema.spec.nodes, "paragraph block*", "block");
+// Add custom paragraph node and list nodes to the basic schema
+const nodes = addListNodes(basicSchema.spec.nodes.update("paragraph", {
+  content: "inline*",
+  group: "block",
+  parseDOM: [{
+    tag: "p",
+    getAttrs: dom => ({
+      style: dom.getAttribute('style')
+    })
+  }],
+  toDOM: () => ["p", { 
+    // Reduced spacing values
+    style: "margin-bottom: 1em; margin-top: 0; line-height: 1.7;" 
+  }, 0]
+}), "paragraph block*", "block");
 
 // Add horizontal rule node
 const nodesWithHR = nodes.addToEnd("horizontal_rule", {

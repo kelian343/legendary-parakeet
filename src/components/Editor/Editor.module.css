@@ -48,18 +48,34 @@
   font-size: inherit;
   line-height: inherit;
   color: var(--editor-text-color);
+  line-height: 1.8; /* Space between lines within a paragraph */
 }
 
 /* Block Elements Spacing */
 .ProseMirror > * + * {
-  margin-top: 1.2em;
+  margin-top: 2.4em;  /* Doubled from 1.2em */
 }
 
 /* Paragraph Styles */
 .ProseMirror p {
-  margin: 1.2em 0;
-  line-height: 1.8;
-  letter-spacing: 0.05em;
+  margin: 0 0 1em 0 !important;    /* Reduced space between paragraphs */
+  line-height: 1.6 !important;     /* Reduced line spacing */
+  min-height: 1.6em;               /* Match line height */
+}
+
+/* For consecutive paragraphs */
+.ProseMirror p + p {
+  margin-top: 1.6em;  /* Increased from 1.6em to 2.4em */
+}
+
+/* When a paragraph follows other block elements */
+.ProseMirror > * + p {
+  margin-top: 1.6em;  /* Increased from 1.6em to 2.4em */
+}
+
+/* When a paragraph precedes other block elements */
+.ProseMirror > p + * {
+  margin-top: 1.6em;  /* Increased from 1.6em to 2.4em */
 }
 
 /* Enhanced Heading Styles */
