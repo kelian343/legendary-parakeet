@@ -6,6 +6,48 @@ import { v4 as uuidv4 } from 'uuid';
 import { globalLinkState } from './prosemirror/bidirectionalLinkPlugin';
 
 function App() {
+
+  const isEditorEmpty = useCallback((editorId) => {
+    const editorInstance = editorRefs.current[editorId];
+    if (!editorInstance) return true;
+
+    const content = editorInstance.getContent();
+    if (!content || !content.doc) return true;
+
+    // Check if the document only contains a single empty paragraph
+    const doc = content.doc;
+    if (doc.content && doc.content.length === 1) {
+      const firstNode = doc.content[0];
+      return firstNode.type === 'paragraph' && 
+             (!firstNode.content || firstNode.content.length === 0);
+    }
+    
+    return false;
+  }, []);
+  
+  const handleEditorClick = useCallback((editorId) => {
+    setEditors(prevEditors => {
+      const editor = prevEditors.find(e => e.id === editorId);
+      const maxZIndex = Math.max(...prevEditors.map(e => e.zIndex));
+      
+      // If toggling to hidden and content is empty, remove the editor
+      if (editor.isVisible && isEditorEmpty(editorId)) {
+        return prevEditors.filter(ed => ed.id !== editorId);
+      }
+
+      // Otherwise, just toggle visibility
+      return prevEditors.map(ed => 
+        ed.id === editorId 
+          ? {
+              ...ed,
+              isVisible: !ed.isVisible,
+              zIndex: maxZIndex + 1
+            }
+          : ed
+      );
+    });
+  }, [isEditorEmpty]);
+
   const [editors, setEditors] = useState([
     {
       id: uuidv4(),
@@ -131,9 +173,15 @@ function App() {
     }
   }, []);
 
+  // Also handle empty editors when saving workflow
   const handleSave = useCallback(() => {
     setEditors(prevEditors => {
-      const allEditorsData = prevEditors.map(editor => {
+      // Filter out hidden empty editors before saving
+      const filteredEditors = prevEditors.filter(editor => 
+        editor.isVisible || !isEditorEmpty(editor.id)
+      );
+
+      const allEditorsData = filteredEditors.map(editor => {
         const editorInstance = editorRefs.current[editor.id];
         let content = null;
 
@@ -157,9 +205,9 @@ function App() {
       link.click();
       URL.revokeObjectURL(url);
 
-      return prevEditors; // Return original state as we are just reading data
+      return filteredEditors; // Return filtered editors to update state
     });
-  }, []);
+  }, [isEditorEmpty]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.ctrlKey && e.key === 's') {
@@ -176,10 +224,6 @@ function App() {
     }
   }, [handleSave]);
 
-  const handleDelete = useCallback((id) => {
-    setEditors(prevEditors => prevEditors.filter(editor => editor.id !== id));
-    delete editorRefs.current[id];
-  }, []);
 
   const handleContextMenu = useCallback((e) => {
     e.preventDefault();
@@ -199,15 +243,23 @@ function App() {
     });
   }, []);
 
+  // Update the handleUpdate function to handle empty editors when hidden
   const handleUpdate = useCallback((id, updates) => {
-    setEditors(prevEditors => 
-      prevEditors.map(editor => 
+    setEditors(prevEditors => {
+      const editor = prevEditors.find(e => e.id === id);
+      
+      // If updating visibility to hidden and content is empty, remove the editor
+      if (updates.isVisible === false && isEditorEmpty(id)) {
+        return prevEditors.filter(ed => ed.id !== id);
+      }
+
+      return prevEditors.map(editor => 
         editor.id === id 
           ? { ...editor, ...updates }
           : editor
-      )
-    );
-  }, []);
+      );
+    });
+  }, [isEditorEmpty]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -310,33 +362,35 @@ function App() {
           </button>
         </div>
 
-        {/* Console Header */}
+        {/* Directory-style Console */}
         <div className="console-header">
-          <span>💻 Console</span>
+          <span>📁 Editor Instances</span>
         </div>
 
-        {/* Console Body */}
         <div className="console-body">
-          <h2>Editor Instances:</h2>
-          <ul>
+          <ul className="directory-list">
             {editors.map(editor => (
-              <li key={editor.id}>Editor ID: {editor.id}</li>
+              <li key={editor.id} className="directory-item">
+                <button 
+                  onClick={() => handleEditorClick(editor.id)}
+                  className="editor-id-button"
+                  title={editor.isVisible ? "Click to hide editor" : "Click to show editor"}
+                >
+                  <span className="directory-icon">
+                    {editor.isVisible ? '📄' : '👁️'}
+                  </span>
+                  <span className="directory-name">
+                    {editor.id}
+                  </span>
+                </button>
+              </li>
             ))}
           </ul>
-          <p>右键点击页面任意位置以创建新的编辑器实例。</p>
-          <p>按下 <strong>CTRL+S</strong> 保存所有编辑器内容为 JSON 工作流文件。</p>
-          <p>将 JSON 文件拖放到浏览器窗口中以加载编辑器状态。</p>
-          <p>使用 <strong>CTRL+Q</strong> 在文本中插入双向链接{globalLinkState.waitingForPartner ? ' (等待插入第二个链接...)' : ''}。</p>
-        </div>
-
-        {/* Command Input (Optional) */}
-        <div className="console-input">
-          <input
-            type="text"
-            placeholder="Enter command..."
-            onKeyDown={handleCommand}
-            aria-label="Command input"
-          />
+          <p className="link-status">
+            {globalLinkState.waitingForPartner && 
+              <span className="waiting-link">等待插入第二个链接...</span>
+            }
+          </p>
         </div>
       </div>
 
@@ -350,7 +404,6 @@ function App() {
           initialDoc={editor.doc}
           initialZIndex={editor.zIndex}
           initialIsVisible={editor.isVisible}
-          onDelete={handleDelete}
           onUpdate={handleUpdate}
           ref={instance => { editorRefs.current[editor.id] = instance; }}
         />

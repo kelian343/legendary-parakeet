@@ -3,7 +3,6 @@ import Editor from '../Editor/Editor';
 import './ResizableDraggableEditor.css';
 
 const ResizableDraggableEditor = forwardRef(({
-  onDelete,
   id,
   initialPosition,
   initialSize,
@@ -160,9 +159,6 @@ const ResizableDraggableEditor = forwardRef(({
     };
   }, [handleMouseMove, handleMouseUp, handleKeyDown, handleKeyUp]);
 
-  const handleDelete = () => {
-    onDelete(id);
-  };
 
   const handleHide = () => {
     const newVisibility = !isVisible;
@@ -199,14 +195,6 @@ const ResizableDraggableEditor = forwardRef(({
       data-editor-id={id}
     >
       <div className="editor-header" onMouseDown={handleHeaderClick}>
-        <button
-          className="editor-button delete-button"
-          onClick={handleDelete}
-          title="删除编辑器"
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          🗑️
-        </button>
         <button
           className="editor-button hide-button"
           onClick={handleHide}
