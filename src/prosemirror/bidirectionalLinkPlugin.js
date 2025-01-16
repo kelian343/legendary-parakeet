@@ -9,6 +9,9 @@ export let globalLinkState = {
   waitingEditorId: null
 };
 
+export let globalHighlightRegistry = new Map(); // Stores text -> color mappings
+
+
 export const bidirectionalLinkPlugin = (editorId) => {
   return new Plugin({
     key: bidirectionalLinkKey,

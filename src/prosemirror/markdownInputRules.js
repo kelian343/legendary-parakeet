@@ -1,5 +1,58 @@
 // src/prosemirror/markdownInputRules.js
 import { InputRule } from 'prosemirror-inputrules';
+import { generateColorFromText } from '../utils/colorUtils';
+
+// First, let's create a specialized version of markInputRule for highlighting
+function highlightMarkRule(regexp, markType) {
+  return new InputRule(regexp, (state, match, start, end) => {
+    const textStart = start + match[0].indexOf(match[2]);
+    const textEnd = textStart + match[2].length;
+    
+    const docSize = state.doc.content.size;
+    if (start < 0 || end > docSize || textStart < 0 || textEnd > docSize) {
+      return null;
+    }
+
+    try {
+      const content = match[2];
+      const isDarkMode = document.body.classList.contains('dark');
+      const highlightColor = generateColorFromText(content, isDarkMode);
+
+      const tr = state.tr;
+      
+      // First add mark
+      tr.addMark(textStart, textEnd, markType.create({
+        content,
+        color: highlightColor
+      }));
+      
+      // Then delete the markers in reverse order
+      tr.delete(textEnd, end)            // Delete closing =
+        .delete(start, textStart);       // Delete opening =
+
+      // Maintain cursor position
+      const finalCursorPos = textStart + content.length;
+      tr.setSelection(state.selection.constructor.near(tr.doc.resolve(finalCursorPos)));
+
+      // After we've handled the local editor's changes, broadcast to others
+      requestAnimationFrame(() => {
+        document.dispatchEvent(new CustomEvent('syncHighlight', {
+          detail: {
+            content,
+            color: highlightColor,
+            searchAllEditors: true
+          }
+        }));
+      });
+
+      return tr;
+    } catch (e) {
+      console.error('Error in highlightMarkRule:', e);
+      return null;
+    }
+  });
+}
+
 
 // Helper for text marks (bold and italic)
 function markInputRule(regexp, markType) {
@@ -89,6 +142,13 @@ export function createMarkdownInputRules(schema) {
   if (schema.nodes.horizontal_rule) {
     rules.push(
       horizontalRuleRule(/^(?:---|\*\*\*|___)\s$/, schema.nodes.horizontal_rule)
+    );
+  }
+
+  // Synchronized highlighting: =text=
+  if (schema.marks.highlight_sync) {
+    rules.push(
+      highlightMarkRule(/(\=)([^=]+?)(\=)$/, schema.marks.highlight_sync)
     );
   }
 

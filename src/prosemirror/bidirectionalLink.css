@@ -18,3 +18,12 @@
   50% { transform: scale(1.5); }
   100% { transform: scale(1); }
 }
+
+.highlight-sync {
+  border-radius: 2px;
+  padding: 0 2px;
+  margin: 0 1px;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode adjustments happen automatically through the generateColorFromText function */

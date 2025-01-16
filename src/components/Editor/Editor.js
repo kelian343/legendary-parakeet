@@ -5,6 +5,7 @@ import { undo, redo } from 'prosemirror-history';
 import localforage from 'localforage';
 import schema from '../../prosemirror/schema';
 import { createPluginsList } from '../../prosemirror/plugins';
+import { generateColorFromText } from '../../utils/colorUtils';  // Add this import
 import 'prosemirror-view/style/prosemirror.css';
 import './Editor.module.css';
 import '../../prosemirror/bidirectionalLink.css';
@@ -38,6 +39,10 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
     try {
       const currentState = viewRef.current.state;
       let newTr = currentState.tr;
+
+      // Store current scroll position
+      const editorContainer = viewRef.current.dom.closest('.editor-container');
+      const scrollTop = editorContainer ? editorContainer.scrollTop : 0;
       
       // Handle document changes with markdown awareness
       if (tr.docChanged) {
@@ -61,6 +66,13 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
       // Apply state changes
       const newState = currentState.apply(newTr);
       viewRef.current.updateState(newState);
+
+      // Restore scroll position after state update
+      if (editorContainer) {
+        requestAnimationFrame(() => {
+          editorContainer.scrollTop = scrollTop;
+        });
+      }
 
       // Handle scrolling
       if (editorRef.current) {
@@ -353,6 +365,110 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
       }
     };
 
+    // Add highlight sync listener
+    const handleSyncHighlight = (event) => {
+      const { content, color, searchAllEditors } = event.detail;
+      if (!viewRef.current) return;
+
+      const { state } = viewRef.current;
+      const { doc, schema } = state;
+      const highlightMark = schema.marks.highlight_sync;
+
+      if (!highlightMark) return;
+
+      // Store current scroll position
+      const editorContainer = viewRef.current.dom.closest('.editor-container');
+      const scrollTop = editorContainer ? editorContainer.scrollTop : 0;
+
+      // Create a new transaction
+      let tr = state.tr;
+      let hasChanges = false;
+      
+      // Find all instances of the text in the current editor
+      doc.nodesBetween(0, doc.content.size, (node, pos) => {
+        if (node.isText) {
+          const text = node.text;
+          let index = text.indexOf(content);
+          
+          while (index !== -1) {
+            const from = pos + index;
+            const to = from + content.length;
+            
+            // Check if this exact range doesn't already have this mark
+            const hasExistingMark = node.marks.some(m => 
+              m.type === highlightMark && 
+              m.attrs.content === content && 
+              m.attrs.color === color
+            );
+
+            if (!hasExistingMark) {
+              tr = tr.removeMark(from, to, highlightMark)
+                    .addMark(from, to, highlightMark.create({
+                      content,
+                      color
+                    }));
+              hasChanges = true;
+            }
+            
+            index = text.indexOf(content, index + 1);
+          }
+        }
+      });
+
+      // Apply the transaction if changes were made
+      if (hasChanges) {
+        viewRef.current.dispatch(tr);
+        
+        // Restore scroll position
+        requestAnimationFrame(() => {
+          if (editorContainer) {
+            editorContainer.scrollTop = scrollTop;
+          }
+        });
+      }
+    };
+
+    const handleThemeChange = (event) => {
+      const { isDarkMode } = event.detail;
+      if (!viewRef.current) return;
+
+      const { state } = viewRef.current;
+      const { doc, schema } = state;
+      const highlightMark = schema.marks.highlight_sync;
+
+      if (!highlightMark) return;
+
+      let tr = state.tr;
+      let hasChanges = false;
+      
+      // Update all highlight colors
+      doc.descendants((node, pos) => {
+        if (node.marks) {
+          node.marks.forEach(mark => {
+            if (mark.type === highlightMark) {
+              const newColor = generateColorFromText(mark.attrs.content, isDarkMode);
+              if (mark.attrs.color !== newColor) {
+                tr = tr.removeMark(pos, pos + node.nodeSize, highlightMark)
+                      .addMark(pos, pos + node.nodeSize, highlightMark.create({
+                        content: mark.attrs.content,
+                        color: newColor
+                      }));
+                hasChanges = true;
+              }
+            }
+          });
+        }
+      });
+
+
+      if (tr.docChanged) {
+        viewRef.current.dispatch(tr);
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener('syncHighlight', handleSyncHighlight);
+
     initializeEditor();
 
     return () => {
@@ -361,6 +477,7 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
         viewRef.current.destroy();
         viewRef.current = null;
       }
+      document.removeEventListener('syncHighlight', handleSyncHighlight);
     };
   }, [editorId, initialDoc, onUpdate]);
 

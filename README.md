@@ -32,7 +32,8 @@ A multi-editor management application built with **React** and **ProseMirror**. 
       │ ├── schema.js
       │ ├── plugins.js
       │ ├── bidirectionalLinkPlugin.js
-      │ └── bidirectionalLink.css
+      │ ├── bidirectionalLink.css
+      │ └── markdownInputRules.js      
       ├── App.js
       └── App.css
 

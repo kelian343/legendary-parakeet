@@ -75,6 +75,29 @@ const marks = {
       'data-target-editor-id': mark.attrs.targetEditorId,
       class: 'bidirectional-link'
     }, 0]
+  },
+
+  // In schema.js, add to the marks object:
+  highlight_sync: {
+    attrs: {
+      content: { default: '' },
+      color: { default: '' }
+    },
+    inclusive: true,
+    parseDOM: [{
+      tag: 'span[data-highlight-sync]',
+      getAttrs: dom => ({
+        content: dom.getAttribute('data-content'),
+        color: dom.getAttribute('data-color')
+      })
+    }],
+    toDOM: mark => ['span', {
+      'data-highlight-sync': '',
+      'data-content': mark.attrs.content,
+      'data-color': mark.attrs.color,
+      class: 'highlight-sync',
+      style: `background-color: ${mark.attrs.color}`
+    }, 0]
   }
 };
 

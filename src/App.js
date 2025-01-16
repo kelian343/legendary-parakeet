@@ -75,6 +75,12 @@ function App() {
   // Save theme to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('theme', theme);
+
+    // Regenerate highlight colors for existing highlights
+    document.dispatchEvent(new CustomEvent('themeChanged', {
+      detail: { isDarkMode: theme === 'dark' }
+    }));
+    
   }, [theme]);
 
   // Function to toggle theme
