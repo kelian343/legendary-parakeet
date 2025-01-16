@@ -5,7 +5,7 @@ import { undo, redo } from 'prosemirror-history';
 import localforage from 'localforage';
 import schema from '../../prosemirror/schema';
 import { createPluginsList } from '../../prosemirror/plugins';
-import { generateColorFromText } from '../../utils/colorUtils';  // Add this import
+import { generateColorFromText, clearUsedColors } from '../../utils/colorUtils';  // Add clearUsedColors to import
 import 'prosemirror-view/style/prosemirror.css';
 import './Editor.module.css';
 import '../../prosemirror/bidirectionalLink.css';
@@ -478,6 +478,10 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
         viewRef.current = null;
       }
       document.removeEventListener('syncHighlight', handleSyncHighlight);
+      // Clear color history when all editors are closed
+      if (document.querySelectorAll('.editor-wrapper').length <= 1) {
+        clearUsedColors();
+      }
     };
   }, [editorId, initialDoc, onUpdate]);
 
