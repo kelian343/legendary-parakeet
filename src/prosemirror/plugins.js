@@ -6,6 +6,7 @@ import { inputRules } from 'prosemirror-inputrules';
 import { toggleMark } from 'prosemirror-commands';
 import { createMarkdownInputRules } from './markdownInputRules';
 import { bidirectionalLinkPlugin, createBidirectionalLink } from './bidirectionalLinkPlugin';
+import { autoHighlightPlugin } from './autoHighlightPlugin';
 import schema from './schema';
 
 // Create a function to generate plugin list, accepting editorId parameter
@@ -34,6 +35,7 @@ export const createPluginsList = (editorId) => {
   return [
     history(),
     bidirectionalLinkPlugin(editorId),
+    autoHighlightPlugin(editorId),  // Add this line
     inputRules({ rules: createMarkdownInputRules(schema) }),
     keymap(bidirectionalLinkKeymap),
     keymap(markdownKeymap),
