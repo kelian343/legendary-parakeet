@@ -136,6 +136,34 @@ const Editor = forwardRef(({ editorId, initialDoc, onUpdate }, ref) => {
     redo: () => {
       redo(viewRef.current?.state, viewRef.current?.dispatch);
     },
+    getEditor: () => viewRef.current,
+    getState: () => {
+      if (viewRef.current) {
+        const editorContainer = viewRef.current.dom.closest('.editor-container');
+        return {
+          scrollPosition: editorContainer ? editorContainer.scrollTop : 0,
+          selection: viewRef.current.state.selection.toJSON()
+        };
+      }
+      return null;
+    },
+    setState: (state) => {
+      if (viewRef.current && state) {
+        const editorContainer = viewRef.current.dom.closest('.editor-container');
+        if (editorContainer && typeof state.scrollPosition === 'number') {
+          editorContainer.scrollTop = state.scrollPosition;
+        }
+        if (state.selection) {
+          try {
+            const tr = viewRef.current.state.tr;
+            tr.setSelection(Selection.fromJSON(viewRef.current.state.doc, state.selection));
+            viewRef.current.dispatch(tr);
+          } catch (error) {
+            console.warn('Failed to restore selection:', error);
+          }
+        }
+      }
+    },
     
     scrollToLink: (linkId) => {
       if (!viewRef.current) return;

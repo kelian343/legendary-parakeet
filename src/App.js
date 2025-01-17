@@ -4,6 +4,7 @@ import './App.css';
 import ResizableDraggableEditor from './components/ResizableDraggableEditor/ResizableDraggableEditor';
 import { v4 as uuidv4 } from 'uuid';
 import { globalLinkState } from './prosemirror/bidirectionalLinkPlugin';
+import { Selection } from 'prosemirror-state';
 
 function App() {
 
@@ -186,23 +187,34 @@ function App() {
       const filteredEditors = prevEditors.filter(editor => 
         editor.isVisible || !isEditorEmpty(editor.id)
       );
-
+  
       const allEditorsData = filteredEditors.map(editor => {
-        const editorInstance = editorRefs.current[editor.id];
+        const editorWrapper = editorRefs.current[editor.id];
         let content = null;
-
-        if (editorInstance) {
-          content = editorInstance.getContent();
+        let editorState = null;
+  
+        if (editorWrapper) {
+          content = editorWrapper.getContent();
+          editorState = editorWrapper.getState();
         }
-
+  
         return {
           ...editor,
-          doc: content?.doc || null
+          doc: content?.doc || null,
+          editorState: editorState || {
+            scrollPosition: 0,
+            selection: null
+          }
         };
       });
-
-      // Save data
-      const workflow = { editors: allEditorsData };
+  
+      // Save workflow data including theme
+      const workflow = {
+        editors: allEditorsData,
+        theme,
+        version: "1.1"
+      };
+  
       const blob = new Blob([JSON.stringify(workflow, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -210,10 +222,10 @@ function App() {
       link.download = 'workflow.json';
       link.click();
       URL.revokeObjectURL(url);
-
-      return filteredEditors; // Return filtered editors to update state
+  
+      return filteredEditors;
     });
-  }, [isEditorEmpty]);
+  }, [isEditorEmpty, theme]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.ctrlKey && e.key === 's') {
@@ -278,14 +290,20 @@ function App() {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (!file || file.type !== 'application/json') {
-      alert('请拖放一个 JSON 文件。');
+      alert('Please drop a JSON file.');
       return;
     }
-
+  
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const workflow = JSON.parse(event.target.result);
+        
+        // Set theme if present
+        if (workflow.theme) {
+          setTheme(workflow.theme);
+        }
+  
         if (workflow.editors && Array.isArray(workflow.editors)) {
           const loadedEditors = workflow.editors.map(editorData => ({
             id: editorData.id || uuidv4(),
@@ -293,15 +311,30 @@ function App() {
             size: editorData.size || { width: 800, height: 400 },
             isVisible: editorData.isVisible !== undefined ? editorData.isVisible : true,
             doc: editorData.doc || null,
+            editorState: editorData.editorState || {
+              scrollPosition: 0,
+              selection: null
+            },
             zIndex: editorData.zIndex || 1
           }));
+  
           setEditors(loadedEditors);
+  
+          // Apply saved editor states after editors are loaded
+          setTimeout(() => {
+            loadedEditors.forEach(editor => {
+              const editorWrapper = editorRefs.current[editor.id];
+              if (editorWrapper && editor.editorState) {
+                editorWrapper.setState(editor.editorState);
+              }
+            });
+          }, 100);
         } else {
-          alert('无效的工作流文件。');
+          alert('Invalid workflow file.');
         }
       } catch (error) {
         console.error('Failed to load workflow:', error);
-        alert('无法解析 JSON 文件。');
+        alert('Unable to parse JSON file.');
       }
     };
     reader.readAsText(file);

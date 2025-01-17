@@ -9,6 +9,7 @@ const ResizableDraggableEditor = forwardRef(({
   initialDoc,
   initialZIndex,
   initialIsVisible,
+  initialEditorState, // Add this
   onUpdate
 }, ref) => {
   const editorWrapperRef = useRef(null);
@@ -43,6 +44,41 @@ const ResizableDraggableEditor = forwardRef(({
       return null;
     },
     getEditor: () => editorRef.current,
+    getState: () => {
+      const editor = editorRef.current;
+      if (!editor) return null;
+      
+      const view = editor.getEditor();
+      if (!view) return null;
+  
+      const editorContainer = view.dom.closest('.editor-container');
+      return {
+        scrollPosition: editorContainer ? editorContainer.scrollTop : 0,
+        selection: view.state.selection.toJSON(),
+      };
+    },
+    setState: (state) => {
+      const editor = editorRef.current;
+      if (!editor || !state) return;
+      
+      const view = editor.getEditor();
+      if (!view) return;
+  
+      const editorContainer = view.dom.closest('.editor-container');
+      if (editorContainer && typeof state.scrollPosition === 'number') {
+        editorContainer.scrollTop = state.scrollPosition;
+      }
+  
+      if (state.selection) {
+        try {
+          const tr = view.state.tr;
+          tr.setSelection(Selection.fromJSON(view.state.doc, state.selection));
+          view.dispatch(tr);
+        } catch (error) {
+          console.warn('Failed to restore selection:', error);
+        }
+      }
+    },
     bringToFront: () => {
       setZIndex(prev => {
         const newZIndex = prev + 1;
@@ -205,7 +241,7 @@ const ResizableDraggableEditor = forwardRef(({
         </button>
       </div>
       <div className="editor-container">
-        <Editor ref={editorRef} editorId={id} initialDoc={initialDoc} />
+        <Editor ref={editorRef} editorId={id} initialDoc={initialDoc} initialEditorState={initialEditorState} />
       </div>
 
       {/* 调整大小的手柄 */}
