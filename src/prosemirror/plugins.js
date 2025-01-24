@@ -11,6 +11,17 @@ import schema from './schema';
 
 // Create a function to generate plugin list, accepting editorId parameter
 export const createPluginsList = (editorId) => {
+
+  const editingKeymap = {
+    'Alt-Enter': (state, dispatch) => {
+      if (dispatch) {
+        const br = schema.nodes.hard_break.create();
+        dispatch(state.tr.replaceSelectionWith(br));
+      }
+      return true;
+    }
+  };
+
   // History keymap configuration
   const historyKeymap = {
     'Mod-z': undo,
@@ -41,5 +52,6 @@ export const createPluginsList = (editorId) => {
     keymap(markdownKeymap),
     keymap(historyKeymap),
     keymap(baseKeymap),
+    keymap(editingKeymap),
   ];
 };
