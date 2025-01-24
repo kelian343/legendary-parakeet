@@ -8,6 +8,8 @@ import { Selection } from 'prosemirror-state';
 
 function App() {
 
+  const [fileHandle, setFileHandle] = useState(null);
+
   const isEditorEmpty = useCallback((editorId) => {
     const editorInstance = editorRefs.current[editorId];
     if (!editorInstance) return true;
@@ -215,17 +217,56 @@ function App() {
         version: "1.1"
       };
   
-      const blob = new Blob([JSON.stringify(workflow, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'workflow.json';
-      link.click();
-      URL.revokeObjectURL(url);
-  
+      const blob = new Blob([JSON.stringify(workflow, null, 2)], { 
+        type: 'application/json' 
+      });
+
+      const saveFile = async () => {
+        try {
+          if (fileHandle) {
+            // Save to original file if we have the handle
+            const writable = await fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+          } else if ('showSaveFilePicker' in window) {
+            // Request a file handle if we don't have one
+            const handle = await window.showSaveFilePicker({
+              types: [{
+                description: 'JSON Files',
+                accept: { 'application/json': ['.json'] }
+              }],
+              suggestedName: 'workflow.json'
+            });
+            setFileHandle(handle);
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+          } else {
+            // Fallback for unsupported browsers
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'workflow.json';
+            link.click();
+            URL.revokeObjectURL(url);
+          }
+        } catch (error) {
+          console.error('Error saving file:', error);
+          // Fallback to download
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'workflow.json';
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+      };
+
+      saveFile();
       return filteredEditors;
     });
-  }, [isEditorEmpty, theme]);
+  }, [isEditorEmpty, theme, fileHandle]);
+
 
   const handleKeyDown = useCallback((e) => {
     if (e.ctrlKey && e.key === 's') {
@@ -286,59 +327,87 @@ function App() {
     };
   }, [handleKeyDown]);
 
-  const handleDrop = useCallback((e) => {
+  const handleDrop = useCallback(async (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (!file || file.type !== 'application/json') {
       alert('Please drop a JSON file.');
       return;
     }
-  
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const workflow = JSON.parse(event.target.result);
-        
-        // Set theme if present
-        if (workflow.theme) {
-          setTheme(workflow.theme);
+
+    try {
+      if ('showOpenFilePicker' in window) {
+        try {
+          const [handle] = await window.showOpenFilePicker({
+            types: [{
+              description: 'JSON Files',
+              accept: { 'application/json': ['.json'] }
+            }],
+            multiple: false
+          });
+          setFileHandle(handle);
+          const file = await handle.getFile();
+          const text = await file.text();
+          processWorkflowFile(text);
+        } catch (error) {
+          console.warn('File handle access denied, falling back to regular file reading');
+          const reader = new FileReader();
+          reader.onload = (event) => processWorkflowFile(event.target.result);
+          reader.readAsText(file);
         }
-  
-        if (workflow.editors && Array.isArray(workflow.editors)) {
-          const loadedEditors = workflow.editors.map(editorData => ({
-            id: editorData.id || uuidv4(),
-            position: editorData.position || { x: 100, y: 100 },
-            size: editorData.size || { width: 800, height: 400 },
-            isVisible: editorData.isVisible !== undefined ? editorData.isVisible : true,
-            doc: editorData.doc || null,
-            editorState: editorData.editorState || {
-              scrollPosition: 0,
-              selection: null
-            },
-            zIndex: editorData.zIndex || 1
-          }));
-  
-          setEditors(loadedEditors);
-  
-          // Apply saved editor states after editors are loaded
-          setTimeout(() => {
-            loadedEditors.forEach(editor => {
-              const editorWrapper = editorRefs.current[editor.id];
-              if (editorWrapper && editor.editorState) {
-                editorWrapper.setState(editor.editorState);
-              }
-            });
-          }, 100);
-        } else {
-          alert('Invalid workflow file.');
-        }
-      } catch (error) {
-        console.error('Failed to load workflow:', error);
-        alert('Unable to parse JSON file.');
+      } else {
+        const reader = new FileReader();
+        reader.onload = (event) => processWorkflowFile(event.target.result);
+        reader.readAsText(file);
       }
-    };
-    reader.readAsText(file);
+    } catch (error) {
+      console.error('Error reading file:', error);
+      alert('Error reading file.');
+    }
   }, []);
+
+  const processWorkflowFile = useCallback((content) => {
+    try {
+      const workflow = JSON.parse(content);
+      
+      if (workflow.theme) {
+        setTheme(workflow.theme);
+      }
+
+      if (workflow.editors && Array.isArray(workflow.editors)) {
+        const loadedEditors = workflow.editors.map(editorData => ({
+          id: editorData.id || uuidv4(),
+          position: editorData.position || { x: 100, y: 100 },
+          size: editorData.size || { width: 800, height: 400 },
+          isVisible: editorData.isVisible !== undefined ? editorData.isVisible : true,
+          doc: editorData.doc || null,
+          editorState: editorData.editorState || {
+            scrollPosition: 0,
+            selection: null
+          },
+          zIndex: editorData.zIndex || 1
+        }));
+
+        setEditors(loadedEditors);
+
+        setTimeout(() => {
+          loadedEditors.forEach(editor => {
+            const editorWrapper = editorRefs.current[editor.id];
+            if (editorWrapper && editor.editorState) {
+              editorWrapper.setState(editor.editorState);
+            }
+          });
+        }, 100);
+      } else {
+        alert('Invalid workflow file.');
+      }
+    } catch (error) {
+      console.error('Failed to load workflow:', error);
+      alert('Unable to parse JSON file.');
+    }
+  }, [setTheme]);
+  
+
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
