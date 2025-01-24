@@ -25,15 +25,19 @@ A multi-editor management application built with **React** and **ProseMirror**. 
       │ ├── Editor/
       │ │ ├── Editor.js
       │ │ └── Editor.module.css
-      │ └── ResizableDraggableEditor/
-      │ ├── ResizableDraggableEditor.js
-      │ └── ResizableDraggableEditor.css
+      │ ├── ResizableDraggableEditor/
+      │ │ ├── ResizableDraggableEditor.js
+      │ │ └── ResizableDraggableEditor.css
+      │ ├──fonts/  
+      │ │ └──PingFangSC-Regular.otf
       ├── prosemirror/
       │ ├── schema.js
       │ ├── plugins.js
       │ ├── bidirectionalLinkPlugin.js
       │ ├── bidirectionalLink.css
-      │ └── markdownInputRules.js      
+      │ └── markdownInputRules.js   
+      ├── utils/
+      │ └── colorUtils.js              
       ├── App.js
       └── App.css
 

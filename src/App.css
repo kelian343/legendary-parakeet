@@ -5,7 +5,15 @@
   src: url('./fonts/PingFangSC-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
-  font-display: swap; /* Optimize font loading */
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PingFangSC-Ultralight';
+  src: url('./fonts/PingFangSC-Ultralight.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* Global Styles */
@@ -33,6 +41,20 @@ body {
   position: relative; /* Reference for absolutely positioned editors */
   transition: background-color 0.3s ease, color 0.3s ease;
   font-family: 'PingFang SC', -apple-system, "Microsoft YaHei", "微软雅黑", sans-serif;
+}
+
+:root {
+  --bg-color: #f8f9fa;
+  --border-color: #eaecef;
+  --text-color: #476582;
+  --shadow-color: rgba(0,0,0,0.05);
+}
+
+.dark {
+  --bg-color: #282c34;
+  --border-color: #3e4451;
+  --text-color: #b3c0d1;
+  --shadow-color: rgba(0,0,0,0.2);
 }
 
 /* Dark Theme Variables */
