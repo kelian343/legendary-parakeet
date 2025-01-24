@@ -83,14 +83,6 @@ const marks = {
   }, 0]
  },
 
- hard_break: {
-  inline: true,
-  group: "inline",
-  selectable: false,
-  parseDOM: [{tag: "br"}],
-  toDOM() { return ["br"] }
-},
-
  bidirectional_link: {
    attrs: {
      id: { default: null },
